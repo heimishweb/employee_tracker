@@ -11,7 +11,7 @@ function appMenu() {
                 type: "list",
                 name: "choice",
                 message: "Please choose:",
-                choices: ['Add Employee', 'Another thing',]
+                choices: ['Add Employee', 'Retrieve all employee info','Retrieve by Name']
             }
         ])
             .then(function (answers) {
@@ -20,8 +20,12 @@ function appMenu() {
                     addEmployee();
 
                 }
-                else if (answers.choice === "Bid") {
-                    bidItem();
+                else if (answers.choice === "Retrieve all employee info") {
+                    connectToDbRetreive();
+                    
+                }
+                else if(answers.choice === "Retrieve by Name") {
+                    retrieveByNameInq();
                 }
 
                 else {
@@ -135,7 +139,7 @@ function connectToDb(department, title, salary, departmentId, firstName, lastNam
 
             function (err, res) {
                 if (err) throw err;
-                console.log(res.affectedRows + " product inserted!\n");
+                console.log(res.affectedRows + " employee inserted!\n");
                 // Call updateProduct AFTER the INSERT completes
                 // updateProduct();
             }
@@ -176,7 +180,7 @@ function connectToDb(department, title, salary, departmentId, firstName, lastNam
 
             function (err, res) {
                 if (err) throw err;
-                console.log(res.affectedRows + " product inserted!\n");
+                console.log(res.affectedRows + " employee inserted!\n");
                 // Call updateProduct AFTER the INSERT completes
                 // updateProduct();
             }
@@ -187,9 +191,55 @@ function connectToDb(department, title, salary, departmentId, firstName, lastNam
 //************************************************************************************ */
 
 //function that retrieves info from database
+function connectToDbRetreive() {
+    var connection = mysql.createConnection({
+        host: "localhost",
 
-function retrieveAllEmployeeInfo() {
+        // Your port; if not 3306
+        port: 3306,
 
-    
+        // Your username
+        user: "root",
+
+        // Your password
+        password: "basedata321!",
+        database: "employee_trackerDB"
+    });
+
+    connection.connect(function (err) {
+        if (err) throw err;
+        console.log("connected as id " + connection.threadId + "\n");
+        var query = connection.query("SELECT * FROM department", function (err, result, fields) {
+            if (err) throw err;
+            console.table(result);
+        });
+
+        var query = connection.query("SELECT * FROM role", function (err, result, fields) {
+            if (err) throw err;
+            console.table(result);
+        });
+
+        var query = connection.query("SELECT * FROM employee", function (err, result, fields) {
+            if (err) throw err;
+            console.table(result);
+        });
+    });
 }
 
+  
+// function retrieveByNameInq() {
+//     inquirer.prompt([
+
+//         {
+//             type: "input",
+//             name: "employeeName",
+//             message: "Who are you looking for?"
+//         }
+//     ])
+//         .then(function (answers) {
+
+//        var person = answers;
+//        var query = connection.query(`SELECT `)
+
+//         });
+// }
