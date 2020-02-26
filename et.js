@@ -1,5 +1,18 @@
 var mysql = require("mysql");
 var inquirer = require("inquirer")
+var connection = mysql.createConnection({
+    host: "localhost",
+
+    // Your port; if not 3306
+    port: 3306,
+
+    // Your username
+    user: "root",
+
+    // Your password
+    password: "basedata321!",
+    database: "employee_trackerDB"
+});
 
 function appMenu() {
 
@@ -11,7 +24,7 @@ function appMenu() {
                 type: "list",
                 name: "choice",
                 message: "Please choose:",
-                choices: ['Add Employee', 'Retrieve all employee info','Retrieve by Name']
+                choices: ['Add Employee', 'Retrieve all employee info', 'Update Role']
             }
         ])
             .then(function (answers) {
@@ -22,10 +35,10 @@ function appMenu() {
                 }
                 else if (answers.choice === "Retrieve all employee info") {
                     connectToDbRetreive();
-                    
+
                 }
-                else if(answers.choice === "Retrieve by Name") {
-                    retrieveByNameInq();
+                else if (answers.choice === "Update Role") {
+                    updateRole();
                 }
 
                 else {
@@ -106,19 +119,6 @@ function addEmployee() {
 
 
 function connectToDb(department, title, salary, departmentId, firstName, lastName, roleId, managerId) {
-    var connection = mysql.createConnection({
-        host: "localhost",
-
-        // Your port; if not 3306
-        port: 3306,
-
-        // Your username
-        user: "root",
-
-        // Your password
-        password: "basedata321!",
-        database: "employee_trackerDB"
-    });
 
     connection.connect(function (err) {
         if (err) throw err;
@@ -223,23 +223,63 @@ function connectToDbRetreive() {
             if (err) throw err;
             console.table(result);
         });
+
     });
+    appMenu(); //go back to beginning
+
 }
 
-  
+//Update Role
+
+function updateRole() {
+    inquirer.prompt([
+
+        {
+            type: "input",
+            name: "employeeLastName",
+            message: "Last name of employee to update role?"
+        },
+        {
+            type: "input",
+            name: "newRole",
+            message: "What is the new role?"
+        }
+    ])
+        .then(function (answers) {
+
+            var person = answers.employeeLastName;
+            var query = connection.query(`SELECT id FROM employee WHERE last_name = '${person}'`, function (err, result, fields) {
+                if (err) throw err;
+                var personsIdToUpdate = result[0].id;
+                // now i want to update role 
+                var query = connection.query(`UPDATE role SET title = '${answers.newRole}' WHERE id=${personsIdToUpdate}`, function (err, result, fields) {
+                    if (err) throw err;
+                    // console.table(result);
+                    console.log(`Updated ${answers.employeeLastName} to ${answers.newRole}!`)
+                });
+
+                // console.log(result);
+                // console.log(personsIdToUpdate)
+            });
+
+
+        });
+
+}
+
 // function retrieveByNameInq() {
 //     inquirer.prompt([
 
 //         {
 //             type: "input",
-//             name: "employeeName",
-//             message: "Who are you looking for?"
+//             name: "employeeLastName",
+//             message: "Who are you looking to update role?"
 //         }
 //     ])
 //         .then(function (answers) {
 
-//        var person = answers;
-//        var query = connection.query(`SELECT `)
+//             var person = answers;
+//             var query = connection.query(`SELECT name FROM employee `)
 
 //         });
 // }
