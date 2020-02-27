@@ -24,7 +24,7 @@ function appMenu() {
                 type: "list",
                 name: "choice",
                 message: "Please choose:",
-                choices: ['Add Employee', 'Retrieve all employee info', 'Update Role']
+                choices: ['Add Employee', 'Retrieve all employee info', 'Update Role', 'View by department','View by role']
             }
         ])
             .then(function (answers) {
@@ -34,11 +34,17 @@ function appMenu() {
 
                 }
                 else if (answers.choice === "Retrieve all employee info") {
-                    connectToDbRetreive();
+                    joinById();
 
                 }
                 else if (answers.choice === "Update Role") {
                     updateRole();
+                }
+                else if (answers.choice === "View by department") {
+                    employeesDepartment();
+                }
+                else if (answers.choice === "View by role") {
+                    employeesRole();
                 }
 
                 else {
@@ -112,9 +118,11 @@ function addEmployee() {
 
             // console.log(itemToPost)
             connectToDb(department, title, salary, departmentId, firstName, lastName, roleId, managerId);
-
+            appMenu();
 
         });
+
+
 }
 
 
@@ -233,7 +241,11 @@ function connectToDbRetreive() {
 
 function updateRole() {
     inquirer.prompt([
-
+        {
+            type: "input",
+            name: "employeeFirstName",
+            message: "First name of employee to update role?"
+        },
         {
             type: "input",
             name: "employeeLastName",
@@ -247,9 +259,11 @@ function updateRole() {
     ])
         .then(function (answers) {
 
-            var person = answers.employeeLastName;
-            var query = connection.query(`SELECT id FROM employee WHERE last_name = '${person}'`, function (err, result, fields) {
+            var personLn = answers.employeeLastName;
+            var personFn = answers.employeeFirstName;
+            var query = connection.query(`SELECT id FROM employee WHERE first_name = '${personFn}' AND  last_name = '${personLn}'`, function (err, result, fields) {
                 if (err) throw err;
+                console.log(result);
                 var personsIdToUpdate = result[0].id;
                 // now i want to update role 
                 var query = connection.query(`UPDATE role SET title = '${answers.newRole}' WHERE id=${personsIdToUpdate}`, function (err, result, fields) {
@@ -262,10 +276,73 @@ function updateRole() {
                 // console.log(personsIdToUpdate)
             });
 
-
+            appMenu();
         });
+}
+
+//all three tables joined - all info
+function joinById() {
+    var query = connection.query(`SELECT department.name, role.title, role.salary, employee.first_name,
+     employee.last_name
+    FROM department INNER JOIN role ON department.id = role.id INNER JOIN employee
+     ON role.id = employee.id`, function (err, result, fields) {
+        if (err) throw err;
+        console.table(result);
+        // console.log(`Updated ${answers.employeeLastName} to ${answers.newRole}!`)
+    });
+
+    appMenu();
 
 }
+
+// view employees by department
+function employeesDepartment() {
+    inquirer.prompt([
+        {
+            type: "input",
+            name: "department",
+            message: "What department (ie.: clothing, food, toys)?"
+        }
+
+    ])
+        .then(function (answers) {
+            var query = connection.query(`SELECT department.name, role.title, role.salary, employee.first_name,
+     employee.last_name
+    FROM department INNER JOIN role ON department.id = role.id INNER JOIN employee
+     ON role.id = employee.id WHERE department.name = '${answers.department}'`, function (err, result, fields) {
+                if (err) throw err;
+                console.table(result);
+                // console.log(`Updated ${answers.employeeLastName} to ${answers.newRole}!`)
+            });
+        });
+    appMenu();
+
+}
+
+// view employees by role
+function employeesRole() {
+    inquirer.prompt([
+        {
+            type: "input",
+            name: "role",
+            message: "What role (ie.: salesperson, cashier, CEO)?"
+        }
+
+    ])
+        .then(function (answers) {
+            var query = connection.query(`SELECT department.name, role.title, role.salary, employee.first_name,
+     employee.last_name
+    FROM department INNER JOIN role ON department.id = role.id INNER JOIN employee
+     ON role.id = employee.id WHERE role.title = '${answers.role}'`, function (err, result, fields) {
+                if (err) throw err;
+                console.table(result);
+                // console.log(`Updated ${answers.employeeLastName} to ${answers.newRole}!`)
+            });
+        });
+    appMenu();
+
+}
+
 
 // function retrieveByNameInq() {
 //     inquirer.prompt([
